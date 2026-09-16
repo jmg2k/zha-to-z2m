@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+      "target": "ES2021",
+      "module": "ESNext",
+      "noEmit": true,
+      "strict": true,
+      "moduleResolution": "node",
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "isolatedModules": true,
+      "skipLibCheck": true,
+      "types": ["vite/client"],
+      "lib": [
+        "ES2021", "DOM"
+      ]
+    },
+    "include": ["src/**/*"]
+  }

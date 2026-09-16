@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ZHA to Z2M Migration Tool</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card-bg: #ffffff;
+      --border: #dfe3e8;
+      --text: #1f2937;
+      --text-muted: #5b6472;
+      --accent: #2f6feb;
+      --accent-text: #ffffff;
+      --code-bg: #eef1f4;
+      --warn-bg: #fff8e6;
+      --warn-border: #e8c766;
+      --info-bg: #eef5ff;
+      --info-border: #bcd6fb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 24px 16px 64px;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .page {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 4px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      margin: 0 0 24px;
+    }
+
+    .callout {
+      border: 1px solid var(--info-border);
+      background: var(--info-bg);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+
+    .callout h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .callout ul {
+      margin: 8px 0 0;
+      padding-left: 20px;
+    }
+
+    .callout li {
+      margin-bottom: 6px;
+    }
+
+    .step {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .step-number {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--accent-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .step-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .step-desc {
+      color: var(--text-muted);
+      margin: 0 0 16px;
+      font-size: 0.95rem;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .field-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 2px;
+      font-size: 0.95rem;
+    }
+
+    .field-hint {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .badge-required {
+      background: #fde8e8;
+      color: #b42318;
+    }
+
+    .badge-optional {
+      background: #e8ecef;
+      color: var(--text-muted);
+    }
+
+    code {
+      background: var(--code-bg);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 0.9em;
+    }
+
+    input[type="file"] {
+      display: block;
+      width: 100%;
+      font-size: 0.9rem;
+    }
+
+    button {
+      background: var(--accent);
+      color: var(--accent-text);
+      border: none;
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    button:hover {
+      filter: brightness(1.08);
+    }
+
+    pre {
+      background: #0d1117;
+      color: #e6edf3;
+      padding: 12px;
+      border-radius: 6px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 0.85rem;
+      max-height: 400px;
+    }
+
+    .download-link {
+      display: inline-block;
+      margin-top: 10px;
+      margin-right: 12px;
+      background: #ecfdf3;
+      border: 1px solid #a6e9c5;
+      color: #067647;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .download-link:hover {
+      filter: brightness(0.97);
+    }
+
+    .download-link[hidden] {
+      display: none;
+    }
+
+    .optional-block {
+      margin-top: 20px;
+      border: 1px solid var(--warn-border);
+      background: var(--warn-bg);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .optional-block h4 {
+      margin: 0 0 6px;
+      font-size: 0.95rem;
+    }
+
+    .optional-block p {
+      margin: 0 0 8px;
+      font-size: 0.88rem;
+      color: #6b5a1e;
+    }
+
+    .path-list {
+      list-style: none;
+      margin: 8px 0 0;
+      padding: 0;
+      font-size: 0.88rem;
+    }
+
+    .path-list li {
+      margin-bottom: 8px;
+      padding-left: 4px;
+    }
+
+    .path-list code {
+      display: inline-block;
+      margin-bottom: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>ZHA to Z2M Migration Tool</h1>
+    <p class="subtitle">Migrate a Home Assistant ZHA Zigbee network to Zigbee2MQTT without re-pairing your devices.</p>
+
+    <div class="callout">
+      <h3>Where to find these files</h3>
+      <p style="margin:0 0 8px;">
+        <strong>Easiest:</strong> install the official
+        <a href="https://github.com/home-assistant/addons/tree/master/configurator" target="_blank" rel="noopener">File editor</a>
+        add-on from the Home Assistant add-on store and browse straight to the paths below — it also lets you
+        upload the files this tool generates and download <code>database.db</code> once Zigbee2MQTT creates it,
+        so you can do Steps 2-4 without ever exporting a backup.
+      </p>
+      <p style="margin:0 0 8px;">
+        <strong>Alternative:</strong> export a full Home Assistant backup (a single <code>.tar</code> file) and
+        extract it. Inside it you'll find a <code>homeassistant.tar.gz</code> — gunzip and untar that too, which
+        gives you a <code>homeassistant/</code> folder. The files this tool needs all live under
+        <code>homeassistant/data/</code>:
+      </p>
+      <ul class="path-list">
+        <li><code>homeassistant/data/zigbee.db</code> — ZHA's own database (network settings + device list). Needed for Step 1.</li>
+        <li><code>homeassistant/data/.storage/core.device_registry</code> — your devices' names. Needed for Step 1.</li>
+        <li><code>homeassistant/data/.storage/core.area_registry</code> — your rooms' names. Optional, Step 1.</li>
+        <li><code>homeassistant/data/zigbee2mqtt/configuration.yaml</code> — the Zigbee2MQTT add-on's own config, if it's already installed. Optional, Step 1.</li>
+        <li><code>homeassistant/data/zigbee2mqtt/database.db</code> — only appears <em>after</em> Zigbee2MQTT's first successful start (see Step 2). Needed for Step 3.</li>
+      </ul>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <h2 class="step-title">Generate configuration.yaml from your ZHA backup</h2>
+      </div>
+      <p class="step-desc">Upload the ZHA files below. This reads your existing Zigbee network's settings (so devices don't need to be re-paired) and your device/room names, and turns them into a Zigbee2MQTT config.</p>
+
+      <div class="field">
+        <label class="field-label">ZHA database file <span class="badge badge-required">Required</span></label>
+        <span class="field-hint">This is <code>zigbee.db</code>, found at <code>homeassistant/data/zigbee.db</code> in your Home Assistant backup.</span>
+        <input type="file" id="dbFile" accept=".sqlite,.db" />
+      </div>
+
+      <div class="field">
+        <label class="field-label">Device registry <span class="badge badge-required">Required</span></label>
+        <span class="field-hint">This is <code>core.device_registry</code>, found at <code>homeassistant/data/.storage/core.device_registry</code>. It's a JSON file with no file extension.</span>
+        <input type="file" id="deviceRegistryFile" />
+      </div>
+
+      <div class="field">
+        <label class="field-label">Area registry <span class="badge badge-optional">Optional</span></label>
+        <span class="field-hint">This is <code>core.area_registry</code>, found at <code>homeassistant/data/.storage/core.area_registry</code>. Home Assistant only requires device names to be unique per room, but Zigbee2MQTT requires them to be unique overall — providing this file appends the room name (e.g. "Lamp 2 (Kitchen)") to any device name that would otherwise collide with one in a different room.</span>
+        <input type="file" id="areaRegistryFile" />
+      </div>
+
+      <div class="field">
+        <label class="field-label">Existing Zigbee2MQTT configuration.yaml <span class="badge badge-optional">Optional</span></label>
+        <span class="field-hint">If the Zigbee2MQTT add-on is already installed, upload its current <code>configuration.yaml</code> (at <code>homeassistant/data/zigbee2mqtt/configuration.yaml</code>) here. Your network settings and device list will be merged into it, so you get one complete, ready-to-use file (mqtt/serial/frontend settings preserved) instead of a fragment you'd have to merge by hand.</span>
+        <input type="file" id="existingConfigFile" accept=".yaml,.yml" />
+      </div>
+
+      <button id="processBtn">Generate configuration.yaml</button>
+
+      <h3 style="margin:20px 0 6px; font-size:0.95rem;">Result:</h3>
+      <pre id="output"></pre>
+      <a id="downloadLink" class="download-link" hidden></a>
+
+      <div class="optional-block">
+        <h4>Also generated: coordinator_backup.json <span class="badge badge-optional">Optional &amp; untested</span></h4>
+        <p>
+          This file re-creates Zigbee2MQTT's <code>coordinator_backup.json</code> in the format zigbee-herdsman
+          expects, so it could restore your exact ZHA network onto the coordinator directly instead of forming
+          a new one from <code>configuration.yaml</code>. In practice <strong>you almost certainly don't need it</strong>:
+          Zigbee2MQTT forms an identical network on its very first start purely from
+          <code>configuration.yaml</code>'s <code>pan_id</code>/<code>ext_pan_id</code>/<code>channel</code>/<code>network_key</code>
+          values — which is exactly what Step 1 already produces, and is the standard way this migration is done.
+          This <code>coordinator_backup.json</code> generation path has been checked against zigbee-herdsman's source
+          code but has <strong>not been confirmed against a real add-on start</strong>. If in doubt, skip this file
+          entirely and only use <code>configuration.yaml</code> in Step 2.
+        </p>
+        <a id="coordinatorBackupLink" class="download-link" hidden></a>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <h2 class="step-title">Start Zigbee2MQTT once to form the network</h2>
+      </div>
+      <p class="step-desc">This step happens in Home Assistant / the add-on itself — there's nothing to upload here. The File editor add-on (mentioned above) is the easiest way to do the delete/upload/download actions below.</p>
+      <ol style="font-size:0.95rem; padding-left: 20px; margin: 0;">
+        <li style="margin-bottom:8px;">Stop the Zigbee2MQTT add-on if it's running.</li>
+        <li style="margin-bottom:8px;">In its data folder (<code>homeassistant/data/zigbee2mqtt/</code>), delete any existing <code>database.db</code> and <code>state.json</code> — and <code>coordinator_backup.json</code> too, unless you're deliberately testing the optional file from Step 1.</li>
+        <li style="margin-bottom:8px;">Upload the <code>configuration.yaml</code> downloaded in Step 1, replacing the existing one.</li>
+        <li style="margin-bottom:8px;">Start the add-on and check its log for a clean startup (no errors). It will form a network identical to your original ZHA one.</li>
+        <li>Stop the add-on again. It will have created a fresh <code>database.db</code> containing just the coordinator entry — download that file and use it in Step 3 below.</li>
+      </ol>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <h2 class="step-title">Add your devices to database.db</h2>
+      </div>
+      <p class="step-desc">This adds every device from your ZHA backup into Zigbee2MQTT's device database, so it recognizes them by their existing network address instead of you having to re-pair each one. It reuses the <code>zigbee.db</code> file you selected in Step 1, so make sure that's still filled in above.</p>
+
+      <div class="field">
+        <label class="field-label">Fresh database.db <span class="badge badge-required">Required</span></label>
+        <span class="field-hint">The <code>database.db</code> fetched from the add-on after the clean start in Step 2 (it should contain just one line, for the coordinator).</span>
+        <input type="file" id="z2mDatabaseFile" accept=".db,.txt" />
+      </div>
+
+      <button id="appendBtn">Add devices to database.db</button>
+      <br />
+      <a id="dbDownloadLink" class="download-link" hidden></a>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number">4</div>
+        <h2 class="step-title">Finish the migration</h2>
+      </div>
+      <p class="step-desc" style="margin-bottom:0;">
+        Upload the updated <code>database.db</code> from Step 3 back into <code>homeassistant/data/zigbee2mqtt/</code>
+        (e.g. via File editor), overwriting the one from Step 2, then start Zigbee2MQTT again. Your devices will appear as "unsupported" —
+        interview each one from the Zigbee2MQTT frontend to complete the migration. Interview mains-powered
+        routers first, then other mains-powered devices, then battery-powered devices last — you'll need to wake
+        each battery-powered device manually during its interview.
+      </p>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
