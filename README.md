@@ -76,28 +76,37 @@ itself.
 
 ### Locating the files
 
-There are two ways to get at these files, depending on what you have access to:
+**For Step 1** (`zigbee.db` and the device/area registries): create and export
+a full Home Assistant backup and extract it. The File editor seems to not
+expose the `.storage/` directory, where the registry files live, so a backup is
+the easiest route here. Extract the outer `.tar` file, then extract the
+`homeassistant.tar.gz` inside it (gunzip, then untar), which gives you a
+`homeassistant/` folder - the files below all live under `homeassistant/data/`.
 
-**Option A — the File editor add-on.** Install the official
-[File editor](https://github.com/home-assistant/addons/tree/master/configurator)
-add-on from the Home Assistant add-on store, then browse directly to the
-paths in the table below (no export/extract step needed). This is also the
-easiest way to handle Steps 2-4 below: uploading the generated
-`configuration.yaml`, deleting the stale `database.db`/`state.json`, and
-downloading the fresh `database.db` that Zigbee2MQTT creates.
-
-**Option B — a full Home Assistant backup.** Export a backup (a single
-`.tar` file), extract it, then extract the `homeassistant.tar.gz` inside it
-(gunzip, then untar). That produces a `homeassistant/` folder — the files
-below all live under `homeassistant/data/`.
-
-| File | Path via File editor / in the backup | Used in |
+| File | Path in the backup | Used in |
 |---|---|---|
 | ZHA's database | `data/zigbee.db` | Step 1 (required) |
 | Device registry | `data/.storage/core.device_registry` | Step 1 (required) |
 | Area registry | `data/.storage/core.area_registry` | Step 1 (optional) |
 | Zigbee2MQTT's existing config | `data/zigbee2mqtt/configuration.yaml` | Step 1 (optional) |
 | Zigbee2MQTT's device database | `data/zigbee2mqtt/database.db` | Step 3 (required) — only exists *after* Z2M's first successful start |
+
+If extracting the backup gives you trouble:
+
+- Getting **"unsupported format"** when extracting `homeassistant.tar.gz`
+  means the backup was created with encryption enabled - create or download
+  an unencrypted one instead (leave encryption unchecked when creating it in
+  Settings -> System -> Backups).
+- `.storage/` is a hidden (dot-prefixed) folder, so your file manager may
+  hide it by default. On macOS: press `Cmd+Shift+.` in Finder to show hidden
+  files, or run `ls -a` in Terminal. If it's still inaccessible, rename it
+  (`mv .storage storage_tmp`) so it's no longer hidden.
+
+**For Steps 2-4** (uploading `configuration.yaml`, and downloading/re-uploading
+`database.db`): install the official
+[File editor](https://github.com/home-assistant/addons/tree/master/configurator)
+add-on from the Home Assistant add-on store. It provides the easiest way for
+getting our modified files back into Home Assistant.
 
 ### Step 1 — Generate `configuration.yaml`
 
@@ -109,19 +118,43 @@ above). Click **Generate configuration.yaml**.
 
 This happens outside the tool, directly in the Zigbee2MQTT add-on. The File
 editor add-on (see above) is the easiest way to do the delete/upload/download
-steps below without needing a full backup export:
+steps below.
+
+**Before you start:** make sure the MQTT integration is set up in Home
+Assistant. Without it, Zigbee2MQTT can fail to start with errors like
+`Got unexpected response from the API: Service not enabled` /
+`Failed to get services from Supervisor API`.
 
 1. Stop the add-on if it's running.
 2. In its data folder, delete any existing `database.db` and `state.json`
    (and `coordinator_backup.json`, unless you're deliberately testing that
    optional file from Step 1).
 3. Upload the `configuration.yaml` generated in Step 1, replacing the
-   existing one.
+   existing one (if you previously uploaded the original configuration.yaml
+   containing the base / MQTT configuration block, otherwise you need to
+   manually stitch together the generated YAML block with the necessary
+   core settings for a successful start of Z2M).
 4. Start the add-on and confirm a clean startup in its log - it will form a
    network identical to your original ZHA one, using the network settings in
    `configuration.yaml`.
-5. Stop the add-on again. It will have created a fresh `database.db`
+5. Stop the add-on again. It should have created a fresh `database.db`
    containing just the coordinator entry - download it via File editor.
+
+> **Info: if the network doesn't form or `database.db` never appears**  
+> According to user reports, this doesn't always succeed on the first
+> start/stop attempt - you may see errors like `RESET_WATCHDOG` or
+> `Failed to start EZSP layer with status=HOST_FATAL_ERROR` in the log, with
+> no `database.db` appearing afterward. If that happens, try toggling the ZHA
+> integration in between attempts: stop Zigbee2MQTT, briefly **enable** ZHA,
+> start then stop Zigbee2MQTT again, **disable** ZHA, then start/stop
+> Zigbee2MQTT once more. This has been reported to eventually produce a
+> working `database.db`.
+> 
+> Afterward, double-check that file: it should contain exactly one line, for
+> the coordinator (`"id":1,"type":"Coordinator",...`). If it has more lines
+> than that - e.g. because ZHA joined devices while briefly re-enabled - open
+> it in a text editor and delete every line except that first coordinator
+> one before moving on to Step 3.
 
 ### Step 3 — Add your devices to `database.db`
 
@@ -132,11 +165,18 @@ into it.
 ### Step 4 — Finish the migration
 
 Upload the updated `database.db` back into the add-on's data folder (e.g. via
-File editor), overwriting the one from Step 2, and start Zigbee2MQTT again. Devices will
-appear as "unsupported" - interview each one from the Zigbee2MQTT frontend
-to complete the migration. Interview mains-powered routers first, then other
-mains-powered devices, then battery-powered devices last (you'll need to
-wake each battery-powered device manually).
+File editor), overwriting the one from Step 2, and start Zigbee2MQTT again.
+Devices will appear as "unsupported" - interview each one from the Zigbee2MQTT
+frontend to complete the migration. Interview mains-powered routers first,
+then other mains-powered devices, then battery-powered devices last (you'll
+need to wake each battery-powered device manually).
+
+> **Tip:** You can find the **Device interview** button by clicking the device's
+> name to go to its detailed info page. In the bottom-right corner there's a row
+> of icons. Click the ℹ️ one to start the interview. Alternatively, you can
+> also switch to the **Devices** tab via Zigbee2MQTT's main navigation. The
+> table view exposes the same row of icons for every listed device, so the
+> interview process can be started in rapid succession for many devices.
 
 ## Caveats
 

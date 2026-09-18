@@ -154,6 +154,11 @@
       color: var(--text-muted);
     }
 
+    .badge-info {
+      background: #d7e8fc;
+      color: #1a4fa0;
+    }
+
     code {
       background: var(--code-bg);
       border-radius: 4px;
@@ -252,6 +257,29 @@
       display: inline-block;
       margin-bottom: 2px;
     }
+
+    .info-block {
+      margin-top: 20px;
+      border: 1px solid var(--info-border);
+      background: var(--info-bg);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .info-block h4 {
+      margin: 0 0 6px;
+      font-size: 0.95rem;
+    }
+
+    .info-block p {
+      margin: 0 0 8px;
+      font-size: 0.88rem;
+      color: #1a4fa0;
+    }
+
+    .info-block p:last-child {
+      margin-bottom: 0;
+    }
   </style>
 </head>
 <body>
@@ -262,25 +290,31 @@
     <div class="callout">
       <h3>Where to find these files</h3>
       <p style="margin:0 0 8px;">
-        <strong>Easiest:</strong> install the official
-        <a href="https://github.com/home-assistant/addons/tree/master/configurator" target="_blank" rel="noopener">File editor</a>
-        add-on from the Home Assistant add-on store and browse straight to the paths below — it also lets you
-        upload the files this tool generates and download <code>database.db</code> once Zigbee2MQTT creates it,
-        so you can do Steps 2-4 without ever exporting a backup.
-      </p>
-      <p style="margin:0 0 8px;">
-        <strong>Alternative:</strong> export a full Home Assistant backup (a single <code>.tar</code> file) and
-        extract it. Inside it you'll find a <code>homeassistant.tar.gz</code> — gunzip and untar that too, which
-        gives you a <code>homeassistant/</code> folder. The files this tool needs all live under
-        <code>homeassistant/data/</code>:
+        <strong>For Step 1</strong> (<code>zigbee.db</code> and the device/area registries): create and export
+        a full Home Assistant backup and extract it. The File editor seems to not expose the <code>.storage/</code>
+        directory, where the registry files live, so a backup is the easiest route here. Extract the outer
+        <code>.tar</code> file, then extract the <code>homeassistant.tar.gz</code> inside it (gunzip, then untar),
+        which gives you a <code>homeassistant/</code> folder - the files below all live under
+        <code>homeassistant/data/</code>.
       </p>
       <ul class="path-list">
-        <li><code>homeassistant/data/zigbee.db</code> — ZHA's own database (network settings + device list). Needed for Step 1.</li>
-        <li><code>homeassistant/data/.storage/core.device_registry</code> — your devices' names. Needed for Step 1.</li>
-        <li><code>homeassistant/data/.storage/core.area_registry</code> — your rooms' names. Optional, Step 1.</li>
-        <li><code>homeassistant/data/zigbee2mqtt/configuration.yaml</code> — the Zigbee2MQTT add-on's own config, if it's already installed. Optional, Step 1.</li>
-        <li><code>homeassistant/data/zigbee2mqtt/database.db</code> — only appears <em>after</em> Zigbee2MQTT's first successful start (see Step 2). Needed for Step 3.</li>
+        <li><code>homeassistant/data/zigbee.db</code> - ZHA's own database (network settings + device list). Needed for Step 1.</li>
+        <li><code>homeassistant/data/.storage/core.device_registry</code> - your devices' names. Needed for Step 1.</li>
+        <li><code>homeassistant/data/.storage/core.area_registry</code> - your rooms' names. Optional, Step 1.</li>
+        <li><code>homeassistant/data/zigbee2mqtt/configuration.yaml</code> - the Zigbee2MQTT add-on's own config, if it's already installed. Optional, Step 1.</li>
+        <li><code>homeassistant/data/zigbee2mqtt/database.db</code> - only appears <em>after</em> Zigbee2MQTT's first successful start (see Step 2). Needed for Step 3.</li>
       </ul>
+      <p style="margin:10px 0 4px;"><strong>If extracting the backup gives you trouble:</strong></p>
+      <ul class="path-list">
+        <li>Extracting <code>homeassistant.tar.gz</code> and getting <em>"unsupported format"</em> means the backup was created with encryption enabled - create or download an unencrypted one instead (leave encryption unchecked when creating it in Settings → System → Backups).</li>
+        <li><code>.storage/</code> is a hidden (dot-prefixed) folder, so your file manager may hide it by default. On macOS: press <code>Cmd+Shift+.</code> in Finder to show hidden files, or run <code>ls -a</code> in Terminal. If it's still inaccessible, rename it (<code>mv .storage storage_tmp</code>) so it's no longer hidden.</li>
+      </ul>
+      <p style="margin:10px 0 0;">
+        <strong>For Steps 2-4</strong> (uploading <code>configuration.yaml</code>, and downloading/re-uploading
+        <code>database.db</code>): install the official
+        <a href="https://github.com/home-assistant/addons/tree/master/configurator" target="_blank" rel="noopener">File editor</a>
+        add-on from the Home Assistant add-on store. It provides the easiest way for getting our modified files back into Home Assistant.
+      </p>
     </div>
 
     <!-- Step 1 -->
@@ -305,7 +339,7 @@
 
       <div class="field">
         <label class="field-label">Area registry <span class="badge badge-optional">Optional</span></label>
-        <span class="field-hint">This is <code>core.area_registry</code>, found at <code>homeassistant/data/.storage/core.area_registry</code>. Home Assistant only requires device names to be unique per room, but Zigbee2MQTT requires them to be unique overall — providing this file appends the room name (e.g. "Lamp 2 (Kitchen)") to any device name that would otherwise collide with one in a different room.</span>
+        <span class="field-hint">This is <code>core.area_registry</code>, found at <code>homeassistant/data/.storage/core.area_registry</code>. Home Assistant only requires device names to be unique per room, but Zigbee2MQTT requires them to be unique overall - providing this file appends the room name (e.g. "Lamp 2 (Kitchen)") to any device name that would otherwise collide with one in a different room.</span>
         <input type="file" id="areaRegistryFile" />
       </div>
 
@@ -329,7 +363,7 @@
           a new one from <code>configuration.yaml</code>. In practice <strong>you almost certainly don't need it</strong>:
           Zigbee2MQTT forms an identical network on its very first start purely from
           <code>configuration.yaml</code>'s <code>pan_id</code>/<code>ext_pan_id</code>/<code>channel</code>/<code>network_key</code>
-          values — which is exactly what Step 1 already produces, and is the standard way this migration is done.
+          values - which is exactly what Step 1 already produces, and is the standard way this migration is done.
           This <code>coordinator_backup.json</code> generation path has been checked against zigbee-herdsman's source
           code but has <strong>not been confirmed against a real add-on start</strong>. If in doubt, skip this file
           entirely and only use <code>configuration.yaml</code> in Step 2.
@@ -344,14 +378,38 @@
         <div class="step-number">2</div>
         <h2 class="step-title">Start Zigbee2MQTT once to form the network</h2>
       </div>
-      <p class="step-desc">This step happens in Home Assistant / the add-on itself — there's nothing to upload here. The File editor add-on (mentioned above) is the easiest way to do the delete/upload/download actions below.</p>
+      <p class="step-desc">This step happens in Home Assistant / the add-on itself - there's nothing to upload here. The File editor add-on (mentioned above) is the easiest way to do the delete/upload/download actions below.</p>
+      <p class="step-desc">
+        <strong>Before you start:</strong> make sure the MQTT integration is set up in Home Assistant.
+        Without it, Zigbee2MQTT can fail to start with errors like <code>Got unexpected response from the
+        API: Service not enabled</code> / <code>Failed to get services from Supervisor API</code>.
+      </p>
       <ol style="font-size:0.95rem; padding-left: 20px; margin: 0;">
         <li style="margin-bottom:8px;">Stop the Zigbee2MQTT add-on if it's running.</li>
-        <li style="margin-bottom:8px;">In its data folder (<code>homeassistant/data/zigbee2mqtt/</code>), delete any existing <code>database.db</code> and <code>state.json</code> — and <code>coordinator_backup.json</code> too, unless you're deliberately testing the optional file from Step 1.</li>
-        <li style="margin-bottom:8px;">Upload the <code>configuration.yaml</code> downloaded in Step 1, replacing the existing one.</li>
+        <li style="margin-bottom:8px;">In its data folder (<code>homeassistant/data/zigbee2mqtt/</code>), delete any existing <code>database.db</code> and <code>state.json</code> - and <code>coordinator_backup.json</code> too, unless you're deliberately testing the optional file from Step 1.</li>
+        <li style="margin-bottom:8px;">Upload the <code>configuration.yaml</code> generated in Step 1, replacing the existing one (if you previously uploaded the original <code>configuration.yaml</code> containing the base / MQTT configuration block, otherwise you need to manually stitch together the generated YAML block with the necessary core settings for a successful start of Z2M).</li>
         <li style="margin-bottom:8px;">Start the add-on and check its log for a clean startup (no errors). It will form a network identical to your original ZHA one.</li>
-        <li>Stop the add-on again. It will have created a fresh <code>database.db</code> containing just the coordinator entry — download that file and use it in Step 3 below.</li>
+        <li>Stop the add-on again. It should have created a fresh <code>database.db</code> containing just the coordinator entry - download that file and use it in Step 3 below.</li>
       </ol>
+
+      <div class="info-block">
+        <h4><span class="badge badge-info">Info</span> If the network doesn't form or database.db never appears</h4>
+        <p>
+          According to user reports, this doesn't always succeed on the first start/stop attempt - you may
+          see errors like <code>RESET_WATCHDOG</code> or <code>Failed to start EZSP layer with
+          status=HOST_FATAL_ERROR</code> in the log, with no <code>database.db</code> appearing afterward.
+          If that happens, try toggling the ZHA integration in between attempts: stop Zigbee2MQTT, briefly
+          <strong>enable</strong> ZHA, start then stop Zigbee2MQTT again, <strong>disable</strong> ZHA, then
+          start/stop Zigbee2MQTT once more. This has been reported to eventually produce a working
+          <code>database.db</code>.
+        </p>
+        <p>
+          Afterward, double-check that file: it should contain exactly one line, for the coordinator
+          (<code>"id":1,"type":"Coordinator",...</code>). If it has more lines than that - e.g. because ZHA
+          joined devices while briefly re-enabled - open it in a text editor and delete every line except
+          that first coordinator one before moving on to Step 3.
+        </p>
+      </div>
     </div>
 
     <!-- Step 3 -->
@@ -379,12 +437,19 @@
         <div class="step-number">4</div>
         <h2 class="step-title">Finish the migration</h2>
       </div>
-      <p class="step-desc" style="margin-bottom:0;">
+      <p class="step-desc">
         Upload the updated <code>database.db</code> from Step 3 back into <code>homeassistant/data/zigbee2mqtt/</code>
-        (e.g. via File editor), overwriting the one from Step 2, then start Zigbee2MQTT again. Your devices will appear as "unsupported" —
+        (e.g. via File editor), overwriting the one from Step 2, then start Zigbee2MQTT again. Your devices will appear as "unsupported" -
         interview each one from the Zigbee2MQTT frontend to complete the migration. Interview mains-powered
-        routers first, then other mains-powered devices, then battery-powered devices last — you'll need to wake
+        routers first, then other mains-powered devices, then battery-powered devices last - you'll need to wake
         each battery-powered device manually during its interview.
+      </p>
+      <p class="step-desc" style="margin-bottom:0;">
+        <strong>Tip:</strong> you can find the <strong>Device interview</strong> button by clicking the
+        device's name to go to its detailed info page. In the bottom-right corner there's a row of icons -
+        click the ℹ️ one to start the interview. Alternatively, you can also switch to the <strong>Devices</strong>
+        tab via Zigbee2MQTT's main navigation. The table view exposes the same row of icons for every listed
+        device, so the interview process can be started in rapid succession for many devices.
       </p>
     </div>
   </div>
